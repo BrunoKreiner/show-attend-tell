@@ -7,7 +7,9 @@
 # refactoring this file!
 
 ## PyTorch
-
+*-env/*
+*env/**/
+attend-env/*
 .coverage
 coverage.xml
 .dmypy.json
