@@ -7,8 +7,12 @@
 # refactoring this file!
 
 ## PyTorch
+**/**.pth
+**/**.pt
+**/notebooks/wandb/*
 *-env/*
 *env/**/
+.env
 attend-env/*
 .coverage
 coverage.xml
