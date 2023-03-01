@@ -46,3 +46,21 @@ For wandb use, use
 └── requirements.txt
 
 ```
+
+# Important Functions and Take-Home-Message
+
+* Gating scalar Beta in Chapter 4.2.1 not implemented
+
+## nn.Embedding
+
+## nn.Linear
+
+    * Applies a linear transformation to the incoming data y = x * W^T + b
+    * behind the scenes:
+        * y = x.matmul(m.weight.t()) + m.bias  #y = x*W^T + b
+    * Links:
+        - https://stackoverflow.com/questions/54916135/what-is-the-class-definition-of-nn-linear-in-pytorch
+
+# Questions
+
+- What is the purpose of initializing the hidden state and cell state by the average value in each filter of the CNN (2048 filters)
