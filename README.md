@@ -1,5 +1,11 @@
-# show-attend-tell
-Implementation and testing of the paper "Show, attend and tell"
+# Show, attend and tell
+
+In the paper "Show, Attend and Tell: Neural Image Caption Generation with Visual Attention" researchers base their ideas on the notion of "paying attention" to a particular part of a given image to generate a caption for that image. This is done by recurrently adjusting attention weights that give parts of the image more attention "weight" than others. It is based on previous research that has theorized and implemented this idea: 
+* [[1409.0473] Neural Machine Translation by Jointly Learning to Align and Translate (arxiv.org)](https://arxiv.org/abs/1409.0473)
+* [[1412.7755] Multiple Object Recognition with Visual Attention (arxiv.org)](https://arxiv.org/abs/1412.7755)
+* [Recurrent Models of Visual Attention (nips.cc)](https://papers.nips.cc/paper/2014/hash/09c6c3783b4a70054da74f2538ed47c6-Abstract.html)
+
+In the "Show, Attend and Tell" paper, state-of-the-art performance was reached for image captioning tasks on the Flickr8k, Flickr30k, and MS COCO benchmark datasets while its predecessors focused on machine translation tasks. While in Bahdanau et al. (2015) attention is used to select relevant parts of the source sentence at each step of the translation process, "Show, Attend and Tell" uses attention to select relevant parts of the input image at each step of the captioning process.
 
 ## Installation 
 
