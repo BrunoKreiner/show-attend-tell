@@ -47,6 +47,27 @@ For wandb use, use
 
 ```
 
+# Trained models
+
+## Weird-attention
+        attention_weights = torch.tanh(features + alpha.unsqueeze(2)) #deterministic soft attention 
+        attention_weights = attention_weights.sum(dim=1)
+
+## Small Parameters:
+  * Attention Dimension = 128
+  * Decoder Dimension 256
+
+## Big Parameters:
+  * Attention Dimension = 256
+  * Decoder Dimension = 512
+
+## Biggest Parameters:
+  * Attention Dimension = 1024
+  * Decoder Dimension = 1024
+
+Decoder Dimension stays the same
+
+
 # Important Functions and Take-Home-Message
 
 * Gating scalar Beta in Chapter 4.2.1 not implemented

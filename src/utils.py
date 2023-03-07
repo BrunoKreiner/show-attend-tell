@@ -282,9 +282,9 @@ class Attention(nn.Module):
     """
     def __init__(self, encoder_dim, decoder_dim, attention_dim):
         super(Attention,self).__init__()
-        self.hidden_state_fc = nn.Linear(decoder_dim, attention_dim)
-        self.features_fc = nn.Linear(encoder_dim, attention_dim)
-        self.attention_score_fc = nn.Linear(attention_dim, 1)
+        self.W = nn.Linear(decoder_dim,attention_dim)
+        self.U = nn.Linear(encoder_dim,attention_dim)
+        self.A = nn.Linear(attention_dim, 1)
 
         #self.relu = nn.ReLU()
         self.softmax = nn.Softmax(dim=0)
@@ -306,16 +306,17 @@ class Attention(nn.Module):
         Returns:
             tuple of alphas and attention weights: returns the newly calculated alphas and attention weights 
         """
-        u_features = self.features_fc(features)
-        w_hidden_state = self.hidden_state_fc(hidden_state)
-        combined_states = torch.tanh(u_features + w_hidden_state.unsqueeze(1))
+        u_hs = self.U(features)
+        w_ah = self.W(hidden_state)
 
-        attention_scores = self.attention_score_fc(combined_states) #attention score per pixel in condensed filters (196, 1) 
-        attention_scores = attention_scores.squeeze(2) # squeeze to get (196,) for softmax
+        combined_states = torch.tanh(u_hs + w_ah.unsqueeze(1))
+
+        attention_scores = self.A(combined_states) #attention score per pixel in condensed filters (196, 1)  
+        attention_scores = attention_scores.squeeze(2) #squeeze to get (196,) for softmax
         alpha = F.softmax(attention_scores, dim=1)
 
-        attention_weights = features * alpha.unsqueeze(2)
-        attention_weights = attention_weights.sum(dim=1)
+        attention_weights = features * alpha.unsqueeze(2) #deterministic soft attention 
+        attention_weights = attention_weights.sum(dim=1) #sum across i = 1 to 196 to get the attention weights [batch_size, encoder_dim (2048)]
         
         return alpha, attention_weights
 
