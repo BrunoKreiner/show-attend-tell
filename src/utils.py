@@ -237,8 +237,8 @@ class EncoderCNN(nn.Module):
             resnet = models.resnet50(pretrained=True)
         elif resnet_type == "resnet101":
             resnet= models.resnet101(pretrained=True)
-        for param in resnet.parameters():
-            param.requires_grad_(False)
+        for param in resnet.parameters(): #freeze the parameters of the resnet
+            param.requires_grad_(False) 
         
         modules = list(resnet.children())[:-2]
         self.resnet = nn.Sequential(*modules)

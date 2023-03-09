@@ -1,0 +1,30 @@
+ATTENTION MODEL:
+features shape:  torch.Size([256, 196, 2048])
+hidden state shape:  torch.Size([256, 512])
+u_hs shape:  torch.Size([256, 196, 256])
+w_ah shape:  torch.Size([256, 256])
+combined shape:  torch.Size([256, 196, 256])
+attention scores shape 1:  torch.Size([256, 196, 1])
+attention scores shape 2 after sueeze(2):  torch.Size([256, 196])
+alpha shape (attention scores through softmax):  torch.Size([256, 196])
+attention_weights (alpha times features) shape:  torch.Size([256, 196, 2048])
+attention_weights (alpha times features) shape after summing over dimension 1:  torch.Size([256, 2048])
+
+DECODER MODEL:
+embeddings shape:  torch.Size([256, 26, 300])
+initial h shape:  torch.Size([256, 512])
+initial c shape:  torch.Size([256, 512])
+seq length:  25
+initial predictions shape:  torch.Size([256, 25, 8426])
+initial alphas shape:  torch.Size([256, 25, 196])
+
+for loop until sequence length finished:
+embeddings[:, s] shape:  torch.Size([256, 300])
+lstm_input shape:  torch.Size([256, 2348])
+h, c = self.lstm_cell(lstm_input, (h, c)) shape:  torch.Size([256, 512]) torch.Size([256, 512])
+output shape after another fc and dropout:  torch.Size([256, 8426])
+predictions[:, s] shape torch.Size([256, 8426])
+alphas[:, s] shape torch.Size([256, 196])
+
+Fragen: 
+wieso captions auch im training des decoders in einem nn.Embedding layer?
