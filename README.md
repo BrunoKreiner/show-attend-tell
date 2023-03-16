@@ -18,38 +18,35 @@ The LSTM hidden and cell states are initialized by averaging over the filters (1
 
 ### Attention Mechanism
 
-In each iteration, the attention weights are calculated using the features of the encoder and the previous hidden state of the LSTM. The features of the encoder don't change during training. What changes are the hidden state of the LSTM and the attention weights. To calculate and then use the attention weights for the LSTM cell, the encoder features and the previous hidden state of the LSTM both go through a linear layer to reduce their dimension to the attention dimension (hyperparameter). Then they can be added together using element-wise addition. The result (196 x attention dimension) is then passed through a tanh activation function and another linear layer to reduce the dimension to 1 (196 x 1) which means, that the 2048 14x14 filters / feature maps were reduced to 1 single flattened 14x14 filter / feature map where each pixel represents the significance of looking at that part of the original picture. This one filter is then softmaxed to get so-called *alphas* (in the paper they are called alphas). The alphas can be plotted onto the original image using bilinear interpolation to see where the model looks the most in the current iteration of the caption generation process. To get the final context vector (1 x 2048) that is used by the LSTM, the encoder features are multiplied with the alphas (196 x 1) and summed up along the filter dimension (1 x 2048). I didn't fully grasp why this is done. I assume that the alphas are multiplied with the encoder features to retain information about the original image instead of being passed directly into the LSTM. While testing, I tried training the model by directly passing the alphas into the LSTM and it didn't result in much different train / test loss. 
+In each iteration, the attention weights are calculated using the features of the encoder and the previous hidden state of the LSTM. The features of the encoder don't change during training. What changes are the hidden state of the LSTM and the attention weights. To calculate and then use the attention weights for the LSTM cell, the encoder features and the previous hidden state of the LSTM both go through a linear layer to reduce their dimension to the attention dimension (hyperparameter). Then they can be added together using element-wise addition. The result (196 x attention dimension) is then passed through a tanh activation function and another linear layer to reduce the dimension to 1 (196 x 1) which means, that the 2048 14x14 filters / feature maps were reduced to 1 single flattened 14x14 filter / feature map where each pixel represents the significance of looking at that part of the original picture. This one filter is then softmaxed to get so-called *alphas* (in the paper they are called alphas). The alphas can be plotted onto the original image using bilinear interpolation to see where the model looks the most in the current iteration of the caption generation process. To get the final context vector (1 x 2048) that is used by the LSTM, the encoder features are multiplied with the alphas (196 x 1) and summed up along the filter dimension (1 x 2048). I didn't fully grasp why this is done. I assume that the alphas are multiplied with the encoder features to retain information about the original image instead of being passed directly into the LSTM. While testing, I tried training the model by directly passing the alphas into the LSTM and it didn't result in much different train / test loss but I also didn't test this for the overfit model, only the small model. This particular test model is stored in file resnet101-alphas.pth.
 
 The context vector is finally concatenated with the embeddings of the previous word in the sentence. Here Teacher-Forcing is used. The predicted word doesn't matter because we force the LSTM to use the true word in the sentence for the next prediction. The word embeddings are also learned during training. Here, pre-trained embeddings could be used from a different model but wasn't tested here.
 
-## Model Parameters
+## Models
 
-*Learning-Rate = 0.0001
-*Batch-Size = 256
-*Epochs = 25
-## Small Parameters:
+The models can be downloaded here: https://drive.google.com/drive/folders/1HnTShJgQZUCk0kpDS7GBBfMXiTSH_Q5Z?usp=sharing
+
+* Learning-Rate = 0.001
+* Batch-Size = 256
+* Epochs = 25
+
+### Small Parameters:
   * Attention Dimension = 128
   * Decoder Dimension 256
 
-## Big Parameters:
+### Big Parameters:
   * Attention Dimension = 256
   * Decoder Dimension = 512
 
-## Overfit Model:
+### Big Parameters:
+  * Attention Dimension = 1024
+  * Decoder Dimension = 1024
+
+### Overfit Model:
   * Attention Dimension = 3000
   * Decoder Dimension = 3000
 
-Decoder Dimension stays the same
-### Weird-attention
-
-  For the model 'resnet101-weird-attention.pth' the following line:
-  ```
-  attention_weights = torch.tanh(features + alpha.unsqueeze(2)) #deterministic soft attention 
-  attention_weights = attention_weights.sum(dim=1)
-  ```
-
-  was changed to:
-  ----------------TODO----------------
+Encoder Dimension stays the same, since it's defined by Resnet.
 
 ## Results
 
@@ -60,6 +57,25 @@ The small model achieves the following results:
 |      Test Data      |  0.4465  |  0.2242  |  0.0785  |  0.0210  |
 | Only Dogs Test Data |  0.5307  |  0.3220  |  0.1512  |  0.0454  |
 
+The overfitted model achieves the following results:
+|       Dataset       |  BLEU-1  |  BLEU-2  |  BLEU-3  |  BLEU-4  |
+|:-------------------:|:--------:|:--------:|:--------:|:--------:|
+|     Train Data      |  0.8437  |  0.7835  |  0.7440  |  0.7076  |
+|      Test Data      |  0.3886  |  0.1656  |  0.0564  |  0.0130  |
+| Only Dogs Test Data |  0.4702  |  0.2603  |  0.0977  |  0.0287  |
+
+## Train and Validation Loss Plots
+
+![Train loss of different models](./reports/wandb_train_loss.png "Train loss of different models")
+![Validation loss of different models](./reports/wandb_validation_loss.png "Validation loss of different models")
+
+## Discussion
+
+In [analysis_small_model.ipynb](./notebooks/analysis_small_model.ipynb), the small model was analyzed because it showed pretty good results that other models couldn't improve except with overfitting involved. In the plots above, the bigger models, except for the overfitting models, didn't converge soon enough and since training was taking a long time, the learning rate was adjusted which resulted in bad learning. The small model shows in its alphas that it learns basic attention in the first few steps, but this attention doesn't get updated much over the course of generating captions. Its BLEU score is pretty bad compared to the ones in the paper. The attention and decoder dimensions weren't explicitly stated in the paper, but we can assume that their model uses around 512 dimensions for both. They trained the models for a longer time and chose an adaptive learning rate algorithm (?). The BLEU score does give good results for BLEU-1 and generally the train data seems to be well fitted. In the overfit model ([analysis_overfit_model.ipynb](./notebooks/analysis_overfit_model.ipynb)) the same is true, but the difference between train and test data scores is much larger. Her we can even see, that BLEU-4 has very good scores on the training data. Surprisingly the test data scores don't suffer too much, even though the validation loss (which is equal to the test loss, since the distinction wasn't made) is high. The alphas plotted from the overfit model show weird results and the attention focuses on a big area in the first generation step. In the dog picture we can see high activation in the whole picture, except in the area that the small model looked at which is surprising. We can that the model doesn't rely solely on the attention mechanism there and it's learned parameters can predict the next word well without using attention alone or in a way that is understandable to humans when plotting back the alphas. 
+
+The BLEU scores of dog images can also be seen in the tables above since they are overrepresented in the data. They make up over 20 percent in both train and test/validation data. Therefore the scores of dog images are better than the average. 
+
+Spacy's textual similarity package was used to see, if the generated captions are similar to the real ones. Textual similarity is higher for training data in comparison to validation/test data but surprisingly only by a little in the small model example though much higher in the case of the overfit model.
 
 ## Installation 
 
@@ -93,7 +109,8 @@ For wandb use, follow their guide on their website and use `wandb login` with yo
 ├── models                          - contains models amd their info in csv file format using timestamps
 ├── notebooks                       - contains jupyter notebooks 
 │   ├── train.ipynb                 - contains notebook for loading tokenizer, loading and preparing data, loading model and train loop
-│   ├── analysis.ipynb              - contains notebook for analysis of show-attend-tell model
+│   ├── analysis_small_model.ipynb  - contains notebook for analysis of small model
+│   ├── analysis_overfit_model.ipynb- contains notebook for analysis of overfitting model
 ├── reports                         - contains figures and texts
 │   └── figures
 └── src                             - contains helper/utility functions
@@ -113,19 +130,6 @@ For wandb use, follow their guide on their website and use `wandb login` with yo
 - from 0 to 1
 - If a word is in the wrong place, the meaning changes, bleu doesn't capture this
 - More focused on precision
-
-# Important Functions and Take-Home-Message
-
-
-## nn.Embedding
-
-## nn.Linear
-
-    * Applies a linear transformation to the incoming data y = x * W^T + b
-    * behind the scenes:
-        * y = x.matmul(m.weight.t()) + m.bias  #y = x*W^T + b
-    * Links:
-        - https://stackoverflow.com/questions/54916135/what-is-the-class-definition-of-nn-linear-in-pytorch
 
 # Questions
 
